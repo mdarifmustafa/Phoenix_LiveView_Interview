@@ -1,0 +1,79 @@
+<.flash_group flash={@flash} />
+<div class="fixed hidden lg:block h-screen left-[20rem] w-[calc(100%-20rem)] border-solid border-2 border-indigo-600">
+  <%= if @question_no != "" do %>
+    <div class="flex flex-row justify-between items-center px-3 pt-2">
+      <a href={~c"/#{URI.encode(@section_name)}/#{URI.encode(@converse_name)}/#{if String.to_integer(@question_no) > 1, do: "#{(String.to_integer(@question_no) - 1)}", else: "#{@question_no}"}#{if @show_group, do: "?show_group=true"}"}>
+        <img src={~p"/images/arrow-left-64.png"} alt="Previous" width="32" />
+      </a>
+      <div class="text-red-600">Question</div>
+      <a href={~c"/#{URI.encode(@section_name)}/#{URI.encode(@converse_name)}/#{if String.to_integer(@question_no) < length(@questions), do: "#{(String.to_integer(@question_no) + 1)}", else: "#{@question_no}"}#{if @show_group, do: "?show_group=true"}"}>
+        <img src={~p"/images/arrow-right-64.png"} alt="Next" width="32" />
+      </a>
+    </div>
+  <% end %>
+  <%= if @question_no != "" do %>
+    <div class="flex flex-row justify-center px-3 pb-3">
+      <%= elem(Enum.at(@questions, String.to_integer(@question_no) - 1), 1) %>
+    </div>
+  <% end %>
+  <div class="grid place-items-center h-screen bg-indigo-50 p-8">
+    <div class="w-[100% - 20rem]">
+      <%= if @question_no != "" do %>
+        <h6 class="text-violet-900">
+          <%= @answers[@question_no] %>
+        </h6>
+      <% else %>
+        <h2 class="text-2xl font-bold text-red-500">No Question Selected!</h2>
+      <% end %>
+    </div>
+  </div>
+</div>
+<div class="relative hidden lg:block h-screen w-[20rem] bg-blue-50 flex flex-col">
+  <div class="sticky top-0 bg-indigo-950 text-white w-full h-12 py-3 px-4 cursor-pointer" onclick={~c"location.href='/#{URI.encode(@section_name)}'"}>
+    <span class="mr-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H3m0 0l6 6m-6-6l6-6" />
+      </svg>
+    </span>
+    <%= Map.get(@converse_data, "description") %>
+    <%= if @show_group do %>
+      <a href={~c"/#{URI.encode(@section_name)}/#{URI.encode(@converse_name)}/1?show_group=false"} alt="group">
+      <span class="absolute right-3 text-sm text-yellow-500">Hide Group</span>
+    </a>
+    <% end %>
+    <%= if !@show_group do %>
+      <a href={~c"/#{URI.encode(@section_name)}/#{URI.encode(@converse_name)}/1?show_group=true"} alt="group">
+      <span class="absolute right-3 text-sm text-yellow-500">Show Group</span>
+    </a>
+    <% end %>
+  </div>
+  <div class="bg-slate-50 w-full h-[calc(100% - 3rem)]">
+    <ul role="list" class="divide-y divide-slate-200 scroll-smooth">
+      <%= for {question_key, question} <- @questions do %>
+        <%= if @show_group && question_key == "1" do %>
+          <li class="p-2 bg-red-500 text-white">
+            <%= @groups[question_key] %>
+          </li>
+        <% end %>
+
+        <%= if @show_group && question_key != "1" && @groups[question_key] != @groups[Integer.to_string(String.to_integer(question_key) - 1)] do %>
+          <li class="p-2 bg-red-500 text-white">
+            <%= @groups[question_key] %>
+          </li>
+        <% end %>
+
+        <li class={if question_key == @question_no, do: "bg-green-300", else: "odd:bg-sky-50 even:bg-sky-100" <> " flex cursor-pointer hover:bg-red-200"} 
+          group="item" 
+          id={"item-#{question_key}"} 
+          phx-value-id={question_key}
+          phx-update="ignore" 
+          phx-hook={if question_key == @question_no, do: "ScrollToItem", else: false}>
+          <a href={~c"/#{URI.encode(@section_name)}/#{URI.encode(@converse_name)}/#{question_key}#{if @show_group, do: "?show_group=true"}"} class="p-4 flex w-full h-full">
+            <span class="pr-3 text-violet-950"><%= question_key %></span>
+            <span class="overflow-hidden"><%= question %></span>
+          </a>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</div>
